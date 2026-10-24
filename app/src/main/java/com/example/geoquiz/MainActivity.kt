@@ -33,6 +33,19 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
+data class Question (val question: String, val answer: Boolean, var isAnswered: Boolean)
+
+val questions = listOf<Question>(
+    Question("Canberra is the capital of Australia.", true, false),
+    Question("The Pacific Ocean is larger than the Atlantic Ocean.", true, false),
+    Question("The Suez Canal connects the Red Sea and the Indian Ocean.", false, false),
+    Question("The source of the Nile River is in Egypt.", false, false),
+    Question("The Amazon River is the longest river in the Americas.", true, false),
+    Question("Lake Baikal is the world's oldest and deepest freshwater lake.", true, false)
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeoQuiz(modifier: Modifier = Modifier) {
     var questionText by remember {mutableStateOf("")}
