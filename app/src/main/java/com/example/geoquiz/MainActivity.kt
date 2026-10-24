@@ -47,23 +47,27 @@ class MainActivity : ComponentActivity() {
 }
 
 
-data class Question (val question: String, val answer: Boolean, var isAnswered: Boolean)
-
-val questions = listOf<Question>(
-    Question("Canberra is the capital of Australia.", true, false),
-    Question("The Pacific Ocean is larger than the Atlantic Ocean.", true, false),
-    Question("The Suez Canal connects the Red Sea and the Indian Ocean.", false, false),
-    Question("The source of the Nile River is in Egypt.", false, false),
-    Question("The Amazon River is the longest river in the Americas.", true, false),
-    Question("Lake Baikal is the world's oldest and deepest freshwater lake.", true, false)
+data class Question (
+    val question: String,
+    val answer: Boolean,
+    var isAnswered: Boolean,
+    var userAnswer: Boolean?
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeoQuiz() {
+    var questions by remember {mutableStateOf(listOf(
+        Question("Canberra is the capital of Australia.", true, false, null),
+        Question("The Pacific Ocean is larger than the Atlantic Ocean.", true, false, null),
+        Question("The Suez Canal connects the Red Sea and the Indian Ocean.", false, false, null),
+        Question("The source of the Nile River is in Egypt.", false, false, null),
+        Question("The Amazon River is the longest river in the Americas.", true, false, null),
+        Question("Lake Baikal is the world's oldest and deepest freshwater lake.", true, false, null)
+    ))}
+
     var currentQuestion : Question by remember {mutableStateOf(questions[0])}
     var questionText by remember {mutableStateOf(questions[0].question)}
-    var isAnswersButtonHidden : Boolean by remember {mutableStateOf(false)}
 
     Scaffold(
         topBar = {
@@ -104,31 +108,56 @@ fun GeoQuiz() {
                     ) {
                         Button(
                             onClick = {
-
+                                val curIndex : Int = questions.indexOf(currentQuestion)
+                                val newCurQuestion = currentQuestion.copy()
+                                newCurQuestion.isAnswered = true
+                                newCurQuestion.userAnswer = true
+                                questions = questions.toMutableList().also {
+                                    it[curIndex] = newCurQuestion
+                                }
+                                currentQuestion = newCurQuestion
                             },
                             modifier = Modifier.width(120.dp)
                         ) { Text("TRUE") }
                         Button(
                             onClick = {
-
+                                val curIndex : Int = questions.indexOf(currentQuestion)
+                                val newCurQuestion = currentQuestion.copy()
+                                newCurQuestion.isAnswered = true
+                                newCurQuestion.userAnswer = false
+                                questions = questions.toMutableList().also {
+                                    it[curIndex] = newCurQuestion
+                                }
+                                currentQuestion = newCurQuestion
                             },
                             modifier = Modifier.width(120.dp)
                         ) { Text("FALSE") }
                     }
                 } else {
-                    Spacer(modifier = Modifier.height(48.dp))
+                    Spacer(modifier = Modifier.height(25.dp))
+                }
+
+                if (currentQuestion.isAnswered) {
+                    var result : String
+                    if (currentQuestion.answer == currentQuestion.userAnswer) {
+                        result = "Correct. Correct answer: " + currentQuestion.answer.toString()
+                    } else {
+                        result = "Incorrect. Correct answer: " + currentQuestion.answer.toString()
+                    }
+                    Text(text=result, fontSize=20.sp, modifier = Modifier.padding(vertical = 10.dp))
+                } else {
+                    Spacer(modifier = Modifier.height(35.dp))
                 }
 
                 if (currentQuestion != questions[questions.size - 1]) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 20.dp),
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.End
                     ) {
                         Button(
                             onClick = {
-                                val curQuestion = getNextQuestion(currentQuestion)
+                                val curQuestion = getNextQuestion(questions, currentQuestion)
                                 if (curQuestion != null) {
                                     currentQuestion = curQuestion
                                     questionText = curQuestion.question
@@ -139,12 +168,22 @@ fun GeoQuiz() {
                         ) { Text("NEXT") }
                     }
                 }
+
+                if (currentQuestion == questions[questions.size - 1] && currentQuestion.isAnswered) {
+                    Text(text="Statistics", fontSize=26.sp, modifier = Modifier.padding(vertical=5.dp))
+                    Text(
+                        text="Count correct answers: " + questions
+                            .count{it.answer == it.userAnswer}.toString(),
+                        fontSize = 20.sp,
+                        modifier= Modifier.padding(vertical=5.dp)
+                    )
+                }
             }
         }
     }
 }
 
-fun getNextQuestion(currentQuestion: Question) : Question? {
+fun getNextQuestion(questions: List<Question>, currentQuestion: Question) : Question? {
     val currentIndex = questions.indexOf(currentQuestion)
     if (currentIndex == -1) {
        return null
