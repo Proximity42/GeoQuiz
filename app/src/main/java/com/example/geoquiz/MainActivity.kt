@@ -56,6 +56,15 @@ fun GeoQuiz(modifier: Modifier = Modifier) {
     )
 }
 
+fun getNextQuestion(currentQuestion: Question) : Question? {
+    val currentIndex = questions.indexOf(currentQuestion)
+    if (currentIndex == -1) {
+       return null
+    }
+    return questions.getOrNull(currentIndex + 1)
+}
+
+
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
